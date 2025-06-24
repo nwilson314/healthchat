@@ -24,7 +24,6 @@
 
     socket.onopen = () => {
       status = 'Ready';
-      console.log('WebSocket connection established.');
     };
 
     socket.onmessage = (event) => {
@@ -34,7 +33,6 @@
       } else {
         try {
           const message = JSON.parse(event.data);
-          console.log('Received JSON:', message);
           switch (message.type) {
             case 'status':
               status = message.message;
@@ -75,7 +73,6 @@
     socket.onclose = () => {
       status = 'Disconnected';
       isRecording = false;
-      console.log('WebSocket connection closed.');
       cleanupAudio();
     };
   });

@@ -111,7 +111,6 @@ class AudioAgent:
                     break
                 if message.get("bytes"):
                     data = message.get("bytes")
-                    print(f"Got audio bytes of length: {len(data)}")
                     await self.audio_input_queue.put(data)
                 elif message.get("text") and message["text"] == "EndOfStream":
                     await self.audio_input_queue.put(None)
@@ -161,21 +160,20 @@ class AudioAgent:
             await self.websocket.send_json({"type": "status", "message": "Thinking..."})
             await self.websocket.send_json({"type": "llm_response_start"})
 
-            full_response = ""
-            last_sentence = ""
+            full_response = []
+            last_sentence = []
             end_punc = [".", "!", "?"]
             for chunk in self._openai_converse_stream():
-                full_response += chunk
-                last_sentence += chunk
+                full_response.append(chunk)
+                last_sentence.append(chunk)
                 await self.websocket.send_json({"type": "llm_chunk", "data": chunk})
 
                 if len(chunk) == 1 and chunk in end_punc:
-                    await self.llm_response_queue.put(last_sentence)
-                    last_sentence = ""
+                    await self.llm_response_queue.put("".join(last_sentence))
+                    last_sentence = []
             
             if full_response:
-                self.conversation_history.append({"role": "assistant", "content": full_response})
-                # await self.llm_response_queue.put(full_response)
+                self.conversation_history.append({"role": "assistant", "content": "".join(full_response)})
             else:
                 await self.websocket.send_json({"type": "status", "message": "AI failed to respond."})
 
@@ -186,16 +184,13 @@ class AudioAgent:
 
             await self.websocket.send_json({"type": "status", "message": "Streaming audio..."})
 
-            # sentences = re.split(r'(?<=[.!?]) +', full_response.strip())
             sentences = [full_response.strip()]
-            print(f"Sentences: {sentences}")
             for sentence in sentences:
                 if not sentence: continue
                 loop = asyncio.get_running_loop()
                 audio_generator = await loop.run_in_executor(None, self._generate_tts_audio, sentence)
                 sentence_chunks = []
                 for chunk in audio_generator:
-                    print(f"Putting audio chunk on queue for sentence: {sentence}")
                     sentence_chunks.append(chunk)
                 full_audio_stream = b''.join(sentence_chunks)
 
@@ -213,5 +208,4 @@ class AudioAgent:
             if chunk == b'--AUDIO_END--':
                 await self.websocket.send_json({"type": "audio_end"})
             else:
-                print(f"sending audio chunk")
                 await self.websocket.send_bytes(chunk)
