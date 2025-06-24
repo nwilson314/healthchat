@@ -18,6 +18,10 @@
   let audioPlayer: HTMLAudioElement;
   let audioQueue: Blob[] = [];
   let isPlayingAudio = false;
+  let hasPrimedAudio = false; // New state for mobile audio unlock
+
+  // A tiny, silent audio file to "unlock" mobile browser audio on the first user gesture.
+  const silentAudio = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
   onMount(() => {
     status = 'Connecting to server...';
@@ -103,6 +107,17 @@
       cleanupAudio();
     } else {
       if (status !== 'Ready') return;
+
+      // Prime the audio player on the first user interaction to bypass mobile autoplay restrictions.
+      if (!hasPrimedAudio) {
+        audioPlayer.src = silentAudio;
+        audioPlayer.play().catch(() => {
+          // This might be blocked, but the user gesture should still unlock the context.
+          // We can ignore this error.
+        });
+        hasPrimedAudio = true;
+      }
+
       isRecording = true;
       status = 'Listening...';
       // We don't clear the conversation history anymore

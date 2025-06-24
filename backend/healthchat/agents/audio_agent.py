@@ -1,5 +1,6 @@
 import io
 import re
+import traceback
 import asyncio
 from fastapi import WebSocket, WebSocketDisconnect
 from openai import OpenAI
@@ -59,8 +60,11 @@ class AudioAgent:
                 self._process_tts(),            # 4. Generate audio
                 self._send_tts_audio()          # 5. Send audio
             )
+        except WebSocketDisconnect:
+            print("Client disconnected gracefully.")
         except Exception as e:
-            print(f"An error occurred in the agent's main run loop: {e}")
+            print(f"An unexpected error occurred in the agent's main run loop: {repr(e)}")
+            traceback.print_exc()
 
     # Helper methods for OpenAI API calls
     def _openai_stt(self, audio_file: io.BytesIO) -> str | None:
