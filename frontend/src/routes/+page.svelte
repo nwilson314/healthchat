@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { API_URL } from '$env/static/private';
+  import { PUBLIC_API_URL } from '$env/static/public';
 
   type Message = { role: 'user' | 'assistant'; content: string };
 
@@ -21,7 +21,7 @@
 
   onMount(() => {
     status = 'Connecting to server...';
-    socket = new WebSocket(`ws://${API_URL}/ws/chat`);
+    socket = new WebSocket(`ws://${PUBLIC_API_URL}/ws/chat`);
 
     socket.onopen = () => {
       status = 'Ready';
