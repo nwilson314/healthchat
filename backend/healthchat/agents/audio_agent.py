@@ -198,9 +198,7 @@ class AudioAgent:
                     sentence_chunks.append(chunk)
                 full_audio_stream = b''.join(sentence_chunks)
 
-                audio_file = io.BytesIO(full_audio_stream)
-                audio_file.name = "audio.webm"
-                await self.tts_audio_queue.put(audio_file)
+                await self.tts_audio_queue.put(full_audio_stream)
             
             await self.tts_audio_queue.put(b'--AUDIO_END--')
 
