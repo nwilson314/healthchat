@@ -21,7 +21,7 @@
 
   onMount(() => {
     status = 'Connecting to server...';
-    socket = new WebSocket(`ws://${PUBLIC_API_URL}/ws/chat`);
+    socket = new WebSocket(`${PUBLIC_API_URL}/ws/chat`);
 
     socket.onopen = () => {
       status = 'Ready';
