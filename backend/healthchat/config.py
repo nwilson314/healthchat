@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "dev"
 
     # AI
-    OPENAI_KEY: str = ""
+    OPENAI_API_KEY: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
